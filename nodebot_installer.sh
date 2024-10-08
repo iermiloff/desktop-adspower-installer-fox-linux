@@ -91,17 +91,22 @@ sudo systemctl restart xrdp
 echo -e "${INFO}Enabling XRDP service at startup...${NC}"
 sudo systemctl enable xrdp
 
-# Installs the necessary dependencies for AdsPower
-sudo apt install -y wget gnupg
+# Install gdebi for handling .deb package installations
+echo -e "${INFO}Installing gdebi for .deb package handling...${NC}"
+sudo apt install -y gdebi-core
 
-# Adds the AdsPower repository key and installs AdsPower
-wget -q -O - https://adspower.com/linux_signing_key.pub | sudo apt-key add -
-echo "deb [arch=amd64] http://dl.adspower.com/linux/deb/ stable main" | sudo tee /etc/apt/sources.list.d/adspower.list
-sudo apt update
-sudo apt install -y adspower
+# Download and install AdsPower using gdebi
+echo -e "${INFO}Downloading AdsPower .deb package...${NC}"
+wget https://adspower.com/download/linux/adspower_linux_amd64.deb -O adspower.deb
+
+echo -e "${INFO}Installing AdsPower using gdebi...${NC}"
+sudo gdebi -n adspower.deb
+
+# Display IP Address, Username, and Password
+IP_ADDRESS=$(hostname -I | awk '{print $1}')
 
 echo -e "${SUCCESS}Installation complete. XFCE Desktop, XRDP, and AdsPower have been installed.${NC}"
+echo -e "${INFO}You can now connect via Remote Desktop using the following details:${NC}"
 echo -e "IP ADDRESS: ${SUCCESS}$IP_ADDRESS${NC}"
 echo -e "USER: ${SUCCESS}$USER${NC}"
 echo -e "PASSWORD: ${SUCCESS}$PASSWORD${NC}"
-echo -e "${INFO}You can now connect via Remote Desktop with the user $USER.${NC}"
