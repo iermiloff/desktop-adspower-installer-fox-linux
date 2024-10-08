@@ -101,4 +101,7 @@ sudo apt update
 sudo apt install -y adspower
 
 echo -e "${SUCCESS}Installation complete. XFCE Desktop, XRDP, and AdsPower have been installed.${NC}"
+echo -e "IP ADDRESS: ${SUCCESS}$IP_ADDRESS${NC}"
+echo -e "USER: ${SUCCESS}$USER${NC}"
+echo -e "PASSWORD: ${SUCCESS}$PASSWORD${NC}"
 echo -e "${INFO}You can now connect via Remote Desktop with the user $USER.${NC}"
