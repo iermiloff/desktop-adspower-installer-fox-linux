@@ -114,7 +114,7 @@ if [ ! -d "$DESKTOP_DIR" ]; then
 fi
 
 # Create a desktop shortcut for AdsPower
-DESKTOP_FILE="/home/$USER/Desktop/AdsPower.desktop"
+DESKTOP_FILE="$DESKTOP_DIR/AdsPower.desktop"
 echo -e "${INFO}Creating desktop shortcut for AdsPower...${NC}"
 
 sudo tee $DESKTOP_FILE > /dev/null <<EOL
@@ -122,10 +122,12 @@ sudo tee $DESKTOP_FILE > /dev/null <<EOL
 Version=1.0
 Type=Application
 Name=AdsPower
+Comment=Launch AdsPower
 Exec=/opt/AdsPower/AdsPower
 Icon=/opt/AdsPower/resources/app/static/img/icon.png
 Terminal=false
-StartupNotify=false
+StartupNotify=true
+Categories=Utility;Application;
 EOL
 
 # Set permissions for the desktop file
