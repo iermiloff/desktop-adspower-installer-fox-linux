@@ -95,12 +95,19 @@ sudo systemctl enable xrdp
 echo -e "${INFO}Installing gdebi for .deb package handling...${NC}"
 sudo apt install -y gdebi-core
 
-# Download and install AdsPower using gdebi
+# Download and install AdsPower using curl and gdebi
 echo -e "${INFO}Downloading AdsPower .deb package...${NC}"
-wget https://adspower.com/download/linux/adspower_linux_amd64.deb -O adspower.deb
+curl -O https://adspower.com/download/linux/adspower_linux_amd64.deb
 
-echo -e "${INFO}Installing AdsPower using gdebi...${NC}"
-sudo gdebi -n adspower.deb
+# Verify the download (ensure the file exists and is not corrupted)
+if [[ -f "adspower_linux_amd64.deb" ]]; then
+    echo -e "${INFO}File downloaded successfully. Proceeding with installation...${NC}"
+    # Install AdsPower using gdebi
+    sudo gdebi -n adspower_linux_amd64.deb
+else
+    echo -e "${ERROR}Error: Failed to download AdsPower package.${NC}"
+    exit 1
+fi
 
 # Display IP Address, Username, and Password
 IP_ADDRESS=$(hostname -I | awk '{print $1}')
