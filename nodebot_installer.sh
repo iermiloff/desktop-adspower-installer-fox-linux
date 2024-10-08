@@ -58,9 +58,22 @@ while true; do
     fi
 done
 
+# Update and install required packages
 echo -e "${INFO}Updating package list...${NC}"
 sudo apt update
 
+echo -e "${INFO}Installing curl and gdebi for handling .deb files...${NC}"
+sudo apt install -y curl gdebi-core
+
+# Download AdsPower .deb package
+echo -e "${INFO}Downloading AdsPower package...${NC}"
+curl -O https://version.adspower.net/software/linux-x64-global/AdsPower-Global-5.9.14-x64.deb
+
+# Install AdsPower using gdebi
+echo -e "${INFO}Installing AdsPower using gdebi...${NC}"
+sudo gdebi -n AdsPower-Global-5.9.14-x64.deb
+
+# Install XFCE and XRDP
 echo -e "${INFO}Installing XFCE Desktop for lower resource usage...${NC}"
 sudo apt install -y xfce4 xfce4-goodies
 
@@ -74,6 +87,7 @@ echo "$USER:$PASSWORD" | sudo chpasswd
 echo -e "${INFO}Adding $USER to the sudo group...${NC}"
 sudo usermod -aG sudo $USER
 
+# Configure XRDP to use XFCE
 echo -e "${INFO}Configuring XRDP to use XFCE desktop...${NC}"
 echo "xfce4-session" > ~/.xsession
 
@@ -91,29 +105,31 @@ sudo systemctl restart xrdp
 echo -e "${INFO}Enabling XRDP service at startup...${NC}"
 sudo systemctl enable xrdp
 
-# Install gdebi for handling .deb package installations
-echo -e "${INFO}Installing gdebi for .deb package handling...${NC}"
-sudo apt install -y gdebi-core
+# Create a desktop shortcut for AdsPower
+DESKTOP_FILE="/home/$USER/Desktop/AdsPower.desktop"
+echo -e "${INFO}Creating desktop shortcut for AdsPower...${NC}"
 
-# Download and install AdsPower using curl and gdebi
-echo -e "${INFO}Downloading AdsPower .deb package...${NC}"
-curl -O https://adspower.com/download/linux/adspower_linux_amd64.deb
+sudo tee $DESKTOP_FILE > /dev/null <<EOL
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=AdsPower
+Exec=/opt/AdsPower/AdsPower
+Icon=/opt/AdsPower/resources/app/static/img/icon.png
+Terminal=false
+StartupNotify=false
+EOL
 
-# Verify the download (ensure the file exists and is not corrupted)
-if [[ -f "adspower_linux_amd64.deb" ]]; then
-    echo -e "${INFO}File downloaded successfully. Proceeding with installation...${NC}"
-    # Install AdsPower using gdebi
-    sudo gdebi -n adspower_linux_amd64.deb
-else
-    echo -e "${ERROR}Error: Failed to download AdsPower package.${NC}"
-    exit 1
-fi
+# Set permissions for the desktop file
+sudo chmod +x $DESKTOP_FILE
+sudo chown $USER:$USER $DESKTOP_FILE
 
-# Display IP Address, Username, and Password
-IP_ADDRESS=$(hostname -I | awk '{print $1}')
+# Get the server IP address
+IP_ADDR=$(hostname -I | awk '{print $1}')
 
-echo -e "${SUCCESS}Installation complete. XFCE Desktop, XRDP, and AdsPower have been installed.${NC}"
-echo -e "${INFO}You can now connect via Remote Desktop using the following details:${NC}"
-echo -e "IP ADDRESS: ${SUCCESS}$IP_ADDRESS${NC}"
-echo -e "USER: ${SUCCESS}$USER${NC}"
-echo -e "PASSWORD: ${SUCCESS}$PASSWORD${NC}"
+# Final message
+echo -e "${SUCCESS}Installation complete. XFCE Desktop, XRDP, AdsPower, and a desktop shortcut have been installed.${NC}"
+echo -e "${INFO}You can now connect via Remote Desktop with the following details:${NC}"
+echo -e "${INFO}IP ADDRESS: ${SUCCESS}$IP_ADDR${NC}"
+echo -e "${INFO}USER: ${SUCCESS}$USER${NC}"
+echo -e "${INFO}PASSWORD: ${SUCCESS}$PASSWORD${NC}"
