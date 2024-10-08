@@ -8,22 +8,33 @@ ERROR='\033[0;31m'
 SUCCESS='\033[0;32m'
 NC='\033[0m' # No Color
 
-# Display Banner
-echo -e "${WARNING}"
-echo "   ___         _   _                _       _      _    ___                    "
-echo "  |   \ ___ __| |_| |_ ___ _ __   _| |_    /_\  __| |__| _ \_____ __ _____ _ _ "
-echo "  | |) / -_|_-< / /  _/ _ \ '_ \ |_   _|  / _ \/ _` (_-<  _/ _ \ V  V / -_) '_|"
-echo "  |___/\___/__/_\_\\__\___/ .__/   |_|   /_/ \_\__,_/__/_| \___/\_/\_/\___|_|  "
-echo "   ___         _        _ |_|         _                                        "
-echo "  |_ _|_ _  __| |_ __ _| | |___ _ _  | |__ _  _                                "
-echo "   | || ' \(_-<  _/ _` | | / -_) '_| | '_ \ || |                               "
-echo "  |___|_||_/__/\__\__,_|_|_\___|_|   |_.__/\_, |                               "
-echo "   _  _         _     ___      _      __  _|__/  _ _        _    _      __     "
-echo "  | \| |___  __| |___| _ ) ___| |_   / / | |_  _| (_)_ __ _(_)__| |__ __\ \    "
-echo "  | .` / _ \/ _` / -_) _ \/ _ \  _| | | || | || | | \ V  V / / _| / /(_-<| |   "
-echo "  |_|\_\___/\__,_\___|___/\___/\__| | |\__/ \_,_|_|_|\_/\_/|_\__|_\_\/__/| |   "
-echo "                                     \_\                                /_/    "
+# Display the banner
+echo -e "${BANNER}"
+echo "___________________________________________________________________________"
+echo "   ________                 __      __                                    "
+echo "   \______ \   ____   _____|  | ___/  |_  ____ ______                      "
+echo "    |    |  \_/ __ \ /  ___/  |/ /\   __\/  _ \\____ \                     "
+echo "    |    \`   \  ___/ \___ \|    <  |  | (  <_> )  |_> >                    "
+echo "   /_______  /\___  >____  >__|_ \ |__|  \____/|   __/                     "
+echo "           \/     \/     \/     \/             |__|                        "
+echo "     ____       _____       .___     __________                            "
+echo "    /  _ \     /  _  \    __| _/_____\______   \______  _  __ ___________  "
+echo "    >  _ </\  /  /_\  \  / __ |/  ___/|     ___/  _ \ \/ \/ // __ \_  __ \ "
+echo "   /  <_\ \/ /    |    \/ /_/ |\___ \ |    |  (  <_> )     /\  ___/|  | \/ "
+echo "   \_____\ \ \____|__  /\____ /____  >|____|   \____/ \/\_/  \___  >__|    "
+echo "          \/         \/      \/    \/                            \/        "
+echo "   .___                 __         .__  .__                               "
+echo "   |   | ____   _______/  |______  |  | |  |   ___________                 "
+echo "   |   |/    \ /  ___/\   __\__  \ |  | |  | _/ __ \_  __ \                "
+echo "   |   |   |  \\___ \  |  |  / __ \|  |_|  |_\  ___/|  | \/                "
+echo "   |___|___|  /____  > |__| (____  /____/____/\___  >__|                   "
+echo "            \/     \/            \/               \/                       "
+echo "___________________________________________________________________________"
+echo "                     Script by NodeBot (Juliwicks)                         "
+echo "___________________________________________________________________________"
 echo -e "${NC}"
+
+# Rest of the script remains the same
 
 # Prompt for username and password
 while true; do
@@ -80,18 +91,14 @@ sudo systemctl restart xrdp
 echo -e "${INFO}Enabling XRDP service at startup...${NC}"
 sudo systemctl enable xrdp
 
-# Install AdsPower dependencies and AdsPower
-echo -e "${INFO}Installing dependencies for AdsPower...${NC}"
-sudo apt install -y wget
+# Installs the necessary dependencies for AdsPower
+sudo apt install -y wget gnupg
 
-echo -e "${INFO}Downloading AdsPower installation script...${NC}"
-wget https://release.adspower.net/linux/AdsPower_linux_x86_64.sh -O adspower_install.sh
-
-echo -e "${INFO}Making the AdsPower script executable...${NC}"
-chmod +x adspower_install.sh
-
-echo -e "${INFO}Running AdsPower installation script...${NC}"
-sudo ./adspower_install.sh
+# Adds the AdsPower repository key and installs AdsPower
+wget -q -O - https://adspower.com/linux_signing_key.pub | sudo apt-key add -
+echo "deb [arch=amd64] http://dl.adspower.com/linux/deb/ stable main" | sudo tee /etc/apt/sources.list.d/adspower.list
+sudo apt update
+sudo apt install -y adspower
 
 echo -e "${SUCCESS}Installation complete. XFCE Desktop, XRDP, and AdsPower have been installed.${NC}"
 echo -e "${INFO}You can now connect via Remote Desktop with the user $USER.${NC}"
