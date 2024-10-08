@@ -105,6 +105,14 @@ sudo systemctl restart xrdp
 echo -e "${INFO}Enabling XRDP service at startup...${NC}"
 sudo systemctl enable xrdp
 
+# Ensure the Desktop directory exists
+DESKTOP_DIR="/home/$USER/Desktop"
+if [ ! -d "$DESKTOP_DIR" ]; then
+    echo -e "${INFO}Desktop directory not found. Creating Desktop directory for $USER...${NC}"
+    sudo mkdir -p "$DESKTOP_DIR"
+    sudo chown $USER:$USER "$DESKTOP_DIR"
+fi
+
 # Create a desktop shortcut for AdsPower
 DESKTOP_FILE="/home/$USER/Desktop/AdsPower.desktop"
 echo -e "${INFO}Creating desktop shortcut for AdsPower...${NC}"
