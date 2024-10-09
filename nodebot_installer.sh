@@ -34,8 +34,6 @@ echo "                     Script by NodeBot (Juliwicks)                        
 echo "___________________________________________________________________________"
 echo -e "${NC}"
 
-# Rest of the script remains the same
-
 # Prompt for username and password
 while true; do
     read -p "Enter the username for remote desktop: " USER
@@ -75,7 +73,7 @@ sudo gdebi -n AdsPower-Global-5.9.14-x64.deb
 
 # Install XFCE and XRDP
 echo -e "${INFO}Installing XFCE Desktop for lower resource usage...${NC}"
-sudo apt install -y xfce4 xfce4-goodies
+sudo apt install -y xfce4 xfce4-goodies xubuntu-desktop
 
 echo -e "${INFO}Installing XRDP for remote desktop...${NC}"
 sudo apt install -y xrdp
@@ -89,7 +87,7 @@ sudo usermod -aG sudo $USER
 
 # Configure XRDP to use XFCE
 echo -e "${INFO}Configuring XRDP to use XFCE desktop...${NC}"
-echo "xfce4-session" > ~/.xsession
+echo "xfce4-session" | sudo tee /home/$USER/.xsession
 
 echo -e "${INFO}Configuring XRDP to use lower resolution by default...${NC}"
 sudo sed -i 's/^#xserverbpp=24/xserverbpp=16/' /etc/xrdp/xrdp.ini
@@ -143,3 +141,7 @@ echo -e "${INFO}You can now connect via Remote Desktop with the following detail
 echo -e "${INFO}IP ADDRESS: ${SUCCESS}$IP_ADDR${NC}"
 echo -e "${INFO}USER: ${SUCCESS}$USER${NC}"
 echo -e "${INFO}PASSWORD: ${SUCCESS}$PASSWORD${NC}"
+
+# Restart the system
+echo -e "${INFO}Rebooting system to apply all changes...${NC}"
+sudo reboot
