@@ -103,6 +103,17 @@ sudo chown $USER:$USER $DESKTOP_FILE
 # Get the server IP address
 IP_ADDR=$(hostname -I | awk '{print $1}')
 
+echo -e "${INFO}Installing curl and gdebi for handling .deb files...${NC}"
+sudo apt install -y curl gdebi-core
+
+# Download AdsPower .deb package
+echo -e "${INFO}Downloading AdsPower package...${NC}"
+curl -O https://version.adspower.net/software/linux-x64-global/AdsPower-Global-5.9.14-x64.deb
+
+# Install AdsPower using gdebi
+echo -e "${INFO}Installing AdsPower using gdebi...${NC}"
+sudo gdebi -n AdsPower-Global-5.9.14-x64.deb
+
 # Final message
 echo -e "${SUCCESS}Installation complete. XFCE Desktop, XRDP, AdsPower, and a desktop shortcut have been installed.${NC}"
 echo -e "${INFO}You can now connect via Remote Desktop with the following details:${NC}"
