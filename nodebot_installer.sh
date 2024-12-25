@@ -130,5 +130,13 @@ else
     echo -e "${INFO}UFW is not installed. Skipping firewall configuration.${NC}"
 fi
 
-echo -e "${SUCCESS}Installation complete. XFCE Desktop, XRDP, and Chrome browser have been installed.${NC}"
-echo -e "${INFO}You can now connect via Remote Desktop with the user $USER.${NC}"
+# Final message
+echo -e "${SUCCESS}Installation complete. XFCE Desktop, XRDP, AdsPower, and a desktop shortcut have been installed.${NC}"
+echo -e "${INFO}You can now connect via Remote Desktop with the following details:${NC}"
+echo -e "${INFO}IP ADDRESS: ${SUCCESS}$IP_ADDR${NC}"
+echo -e "${INFO}USER: ${SUCCESS}$USER${NC}"
+echo -e "${INFO}PASSWORD: ${SUCCESS}$PASSWORD${NC}"
+
+# Restart the system
+echo -e "${INFO}Rebooting system to apply all changes...${NC}"
+sudo reboot
