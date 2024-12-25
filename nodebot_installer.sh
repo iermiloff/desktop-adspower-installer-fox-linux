@@ -56,9 +56,51 @@ while true; do
     fi
 done
 
-# Update and install required packages
 echo -e "${INFO}Updating package list...${NC}"
 sudo apt update
+
+echo -e "${INFO}Installing XFCE Desktop for lower resource usage...${NC}"
+sudo apt install -y xfce4 xfce4-goodies
+
+echo -e "${INFO}Installing XRDP for remote desktop...${NC}"
+sudo apt install -y xrdp
+
+echo -e "${INFO}Adding the user $USER with the specified password...${NC}"
+sudo useradd -m -s /bin/bash $USER
+echo "$USER:$PASSWORD" | sudo chpasswd
+
+echo -e "${INFO}Adding $USER to the sudo group...${NC}"
+sudo usermod -aG sudo $USER
+
+echo -e "${INFO}Configuring XRDP to use XFCE desktop...${NC}"
+echo "xfce4-session" > ~/.xsession
+
+# Update startwm.sh to launch xfce4-session
+echo -e "${INFO}Modifying startwm.sh to use XFCE session...${NC}"
+sudo sed -i '/test -x \/etc\/X11\/Xsession && exec \/etc\/X11\/Xsession/,+1c\startxfce4' "/etc/xrdp/startwm.sh"
+
+echo -e "${INFO}Configuring XRDP to use lower color depth by default...${NC}"
+sudo sed -i '/^#xserverbpp=24/s/^#//; s/xserverbpp=24/xserverbpp=16/' /etc/xrdp/xrdp.ini
+echo -e "${SUCCESS}XRDP configuration updated to use color depth of 16.${NC}"
+
+# Update existing max_bpp, xres, and yres values if present, otherwise add them
+echo -e "${INFO}Setting maximum resolution to 1280x720...${NC}"
+sudo sed -i '/^max_bpp=/s/=.*/=16/' /etc/xrdp/xrdp.ini
+sudo sed -i '/^xres=/s/=.*/=1280/' /etc/xrdp/xrdp.ini
+sudo sed -i '/^yres=/s/=.*/=720/' /etc/xrdp/xrdp.ini
+
+# If settings are not found, append them at the end of the file
+grep -q '^max_bpp=' /etc/xrdp/xrdp.ini || echo 'max_bpp=16' | sudo tee -a /etc/xrdp/xrdp.ini > /dev/null
+grep -q '^xres=' /etc/xrdp/xrdp.ini || echo 'xres=1280' | sudo tee -a /etc/xrdp/xrdp.ini > /dev/null
+grep -q '^yres=' /etc/xrdp/xrdp.ini || echo 'yres=720' | sudo tee -a /etc/xrdp/xrdp.ini > /dev/null
+
+echo -e "${SUCCESS}Resolution limited to 1280x720.${NC}"
+
+echo -e "${INFO}Restarting XRDP service...${NC}"
+sudo systemctl restart xrdp
+
+echo -e "${INFO}Enabling XRDP service at startup...${NC}"
+sudo systemctl enable xrdp
 
 echo -e "${INFO}Installing curl and gdebi for handling .deb files...${NC}"
 sudo apt install -y curl gdebi-core
@@ -71,77 +113,22 @@ curl -O https://version.adspower.net/software/linux-x64-global/AdsPower-Global-5
 echo -e "${INFO}Installing AdsPower using gdebi...${NC}"
 sudo gdebi -n AdsPower-Global-5.9.14-x64.deb
 
-# Install XFCE and XRDP
-echo -e "${INFO}Installing XFCE Desktop for lower resource usage...${NC}"
-sudo apt install -y xfce4 xfce4-goodies xubuntu-desktop
+# Updates the package list again
+sudo apt update
 
-echo -e "${INFO}Installing XRDP for remote desktop...${NC}"
-sudo apt install -y xrdp
-
-echo -e "${INFO}Adding the user $USER with the specified password...${NC}"
-sudo useradd -m -s /bin/bash $USER
-echo "$USER:$PASSWORD" | sudo chpasswd
-
-echo -e "${INFO}Adding $USER to the sudo group...${NC}"
-sudo usermod -aG sudo $USER
-
-# Configure XRDP to use XFCE
-echo -e "${INFO}Configuring XRDP to use XFCE desktop...${NC}"
-echo "xfce4-session" | sudo tee /home/$USER/.xsession
-
-echo -e "${INFO}Configuring XRDP to use lower resolution by default...${NC}"
-sudo sed -i 's/^#xserverbpp=24/xserverbpp=16/' /etc/xrdp/xrdp.ini
-echo -e "${SUCCESS}XRDP configuration updated to use lower color depth.${NC}"
-
-echo -e "${INFO}Limiting the resolution to a maximum (1280x720)...${NC}"
-sudo sed -i '/\[xrdp1\]/a max_bpp=16\nxres=1280\nyres=720' /etc/xrdp/xrdp.ini
-echo -e "${SUCCESS}XRDP configuration updated to use lower resolution (1280x720).${NC}"
-
-echo -e "${INFO}Restarting XRDP service...${NC}"
-sudo systemctl restart xrdp
-
-echo -e "${INFO}Enabling XRDP service at startup...${NC}"
-sudo systemctl enable xrdp
-
-# Ensure the Desktop directory exists
-DESKTOP_DIR="/home/$USER/Desktop"
-if [ ! -d "$DESKTOP_DIR" ]; then
-    echo -e "${INFO}Desktop directory not found. Creating Desktop directory for $USER...${NC}"
-    sudo mkdir -p "$DESKTOP_DIR"
-    sudo chown $USER:$USER "$DESKTOP_DIR"
+# Check if UFW is installed and enabled, and add a rule for port 3389
+if command -v ufw >/dev/null; then
+    echo -e "${INFO}UFW is installed. Checking if it is enabled...${NC}"
+    if sudo ufw status | grep -q "Status: active"; then
+        echo -e "${INFO}UFW is enabled. Adding a rule to allow traffic on port 3389...${NC}"
+        sudo ufw allow 3389/tcp
+        echo -e "${SUCCESS}Port 3389 is now allowed through UFW.${NC}"
+    else
+        echo -e "${WARNING}UFW is installed but not enabled. Skipping rule addition.${NC}"
+    fi
+else
+    echo -e "${INFO}UFW is not installed. Skipping firewall configuration.${NC}"
 fi
 
-# Create a desktop shortcut for AdsPower
-DESKTOP_FILE="$DESKTOP_DIR/AdsPower.desktop"
-echo -e "${INFO}Creating desktop shortcut for AdsPower...${NC}"
-
-sudo tee $DESKTOP_FILE > /dev/null <<EOL
-[Desktop Entry]
-Version=1.0
-Type=Application
-Name=AdsPower
-Comment=Launch AdsPower
-Exec=/opt/AdsPower/AdsPower
-Icon=/opt/AdsPower/resources/app/static/img/icon.png
-Terminal=false
-StartupNotify=true
-Categories=Utility;Application;
-EOL
-
-# Set permissions for the desktop file
-sudo chmod +x $DESKTOP_FILE
-sudo chown $USER:$USER $DESKTOP_FILE
-
-# Get the server IP address
-IP_ADDR=$(hostname -I | awk '{print $1}')
-
-# Final message
-echo -e "${SUCCESS}Installation complete. XFCE Desktop, XRDP, AdsPower, and a desktop shortcut have been installed.${NC}"
-echo -e "${INFO}You can now connect via Remote Desktop with the following details:${NC}"
-echo -e "${INFO}IP ADDRESS: ${SUCCESS}$IP_ADDR${NC}"
-echo -e "${INFO}USER: ${SUCCESS}$USER${NC}"
-echo -e "${INFO}PASSWORD: ${SUCCESS}$PASSWORD${NC}"
-
-# Restart the system
-echo -e "${INFO}Rebooting system to apply all changes...${NC}"
-sudo reboot
+echo -e "${SUCCESS}Installation complete. XFCE Desktop, XRDP, and Chrome browser have been installed.${NC}"
+echo -e "${INFO}You can now connect via Remote Desktop with the user $USER.${NC}"
