@@ -56,21 +56,6 @@ while true; do
     fi
 done
 
-# Update and install required packages
-echo -e "${INFO}Updating package list...${NC}"
-sudo apt update
-
-echo -e "${INFO}Installing curl and gdebi for handling .deb files...${NC}"
-sudo apt install -y curl gdebi-core
-
-# Download AdsPower .deb package
-echo -e "${INFO}Downloading AdsPower package...${NC}"
-curl -O https://version.adspower.net/software/linux-x64-global/AdsPower-Global-5.9.14-x64.deb
-
-# Install AdsPower using gdebi
-echo -e "${INFO}Installing AdsPower using gdebi...${NC}"
-sudo gdebi -n AdsPower-Global-5.9.14-x64.deb
-
 # Install XFCE and XRDP
 echo -e "${INFO}Installing XFCE Desktop for lower resource usage...${NC}"
 sudo apt install -y xfce4 xfce4-goodies xubuntu-desktop
@@ -93,8 +78,8 @@ echo -e "${INFO}Configuring XRDP to use lower resolution by default...${NC}"
 sudo sed -i 's/^#xserverbpp=24/xserverbpp=16/' /etc/xrdp/xrdp.ini
 echo -e "${SUCCESS}XRDP configuration updated to use lower color depth.${NC}"
 
-echo -e "${INFO}Limiting the resolution to a maximum (1280x720)...${NC}"
-sudo sed -i '/\[xrdp1\]/a max_bpp=16\nxres=1280\nyres=720' /etc/xrdp/xrdp.ini
+echo -e "${INFO}Limiting the resolution to a maximum (800x600)...${NC}"
+sudo sed -i '/\[xrdp1\]/a max_bpp=16\nxres=800\nyres=600' /etc/xrdp/xrdp.ini
 echo -e "${SUCCESS}XRDP configuration updated to use lower resolution (1280x720).${NC}"
 
 echo -e "${INFO}Restarting XRDP service...${NC}"
@@ -110,23 +95,6 @@ if [ ! -d "$DESKTOP_DIR" ]; then
     sudo mkdir -p "$DESKTOP_DIR"
     sudo chown $USER:$USER "$DESKTOP_DIR"
 fi
-
-# Create a desktop shortcut for AdsPower
-DESKTOP_FILE="$DESKTOP_DIR/AdsPower.desktop"
-echo -e "${INFO}Creating desktop shortcut for AdsPower...${NC}"
-
-sudo tee $DESKTOP_FILE > /dev/null <<EOL
-[Desktop Entry]
-Version=1.0
-Type=Application
-Name=AdsPower
-Comment=Launch AdsPower
-Exec=/opt/AdsPower/AdsPower
-Icon=/opt/AdsPower/resources/app/static/img/icon.png
-Terminal=false
-StartupNotify=true
-Categories=Utility;Application;
-EOL
 
 # Set permissions for the desktop file
 sudo chmod +x $DESKTOP_FILE
