@@ -71,9 +71,9 @@ curl -O https://version.adspower.net/software/linux-x64-global/AdsPower-Global-5
 echo -e "${INFO}Installing AdsPower using gdebi...${NC}"
 sudo gdebi -n AdsPower-Global-5.9.14-x64.deb
 
-# Install XFCE and XRDP
-echo -e "${INFO}Installing XFCE Desktop for lower resource usage...${NC}"
-sudo apt install -y xfce4 xfce4-goodies xubuntu-desktop
+# Install GNOME and XRDP
+echo -e "${INFO}Installing GNOME Desktop...${NC}"
+sudo apt install -y ubuntu-desktop gnome-shell
 
 echo -e "${INFO}Installing XRDP for remote desktop...${NC}"
 sudo apt install -y xrdp
@@ -85,18 +85,21 @@ echo "$USER:$PASSWORD" | sudo chpasswd
 echo -e "${INFO}Adding $USER to the sudo group...${NC}"
 sudo usermod -aG sudo $USER
 
-# Configure XRDP to use XFCE
-echo -e "${INFO}Configuring XRDP to use XFCE desktop...${NC}"
-echo "xfce4-session" | sudo tee /home/$USER/.xsession
+# Configure XRDP to use GNOME
+echo -e "${INFO}Configuring XRDP to use GNOME desktop...${NC}"
+sudo tee /etc/xrdp/startwm.sh > /dev/null <<EOL
+#!/bin/sh
+unset DBUS_SESSION_BUS_ADDRESS
+exec /usr/bin/gnome-session
+EOL
 
-echo -e "${INFO}Configuring XRDP to use lower resolution by default...${NC}"
-sudo sed -i 's/^#xserverbpp=24/xserverbpp=16/' /etc/xrdp/xrdp.ini
-echo -e "${SUCCESS}XRDP configuration updated to use lower color depth.${NC}"
+sudo chmod +x /etc/xrdp/startwm.sh
 
-echo -e "${INFO}Limiting the resolution to a maximum (800x600)...${NC}"
+# Configure XRDP for 800x600 resolution
+echo -e "${INFO}Limiting XRDP resolution to 800x600 for lower resource usage...${NC}"
 sudo sed -i '/\[xrdp1\]/a max_bpp=16\nxres=800\nyres=600' /etc/xrdp/xrdp.ini
-echo -e "${SUCCESS}XRDP configuration updated to use lower resolution (1280x720).${NC}"
 
+# Restart and enable XRDP service
 echo -e "${INFO}Restarting XRDP service...${NC}"
 sudo systemctl restart xrdp
 
@@ -136,7 +139,7 @@ sudo chown $USER:$USER $DESKTOP_FILE
 IP_ADDR=$(hostname -I | awk '{print $1}')
 
 # Final message
-echo -e "${SUCCESS}Installation complete. XFCE Desktop, XRDP, AdsPower, and a desktop shortcut have been installed.${NC}"
+echo -e "${SUCCESS}Installation complete. GNOME Desktop, XRDP, AdsPower, and a desktop shortcut have been installed.${NC}"
 echo -e "${INFO}You can now connect via Remote Desktop with the following details:${NC}"
 echo -e "${INFO}IP ADDRESS: ${SUCCESS}$IP_ADDR${NC}"
 echo -e "${INFO}USER: ${SUCCESS}$USER${NC}"
