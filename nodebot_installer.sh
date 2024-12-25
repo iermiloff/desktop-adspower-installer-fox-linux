@@ -34,93 +34,64 @@ echo "                     Script by NodeBot (Juliwicks)                        
 echo "___________________________________________________________________________"
 echo -e "${NC}"
 
-# Prompt for username and password
-while true; do
-    read -p "Enter the username for remote desktop: " USER
-    if [[ "$USER" == "root" ]]; then
-        echo -e "${ERROR}Error: 'root' cannot be used as the username. Please choose a different username.${NC}"
-    elif [[ "$USER" =~ [^a-zA-Z0-9] ]]; then
-        echo -e "${ERROR}Error: Username contains forbidden characters. Only alphanumeric characters are allowed.${NC}"
-    else
-        break
-    fi
-done
-
-while true; do
-    read -sp "Enter the password for $USER: " PASSWORD
-    echo
-    if [[ "$PASSWORD" =~ [^a-zA-Z0-9] ]]; then
-        echo -e "${ERROR}Error: Password contains forbidden characters. Only alphanumeric characters are allowed.${NC}"
-    else
-        break
-    fi
-done
-
-# Install XFCE and XRDP
-echo -e "${INFO}Installing XFCE Desktop for lower resource usage...${NC}"
-sudo apt install -y xfce4 xfce4-goodies xubuntu-desktop
-
-echo -e "${INFO}Installing XRDP for remote desktop...${NC}"
-sudo apt install -y xrdp
-
-echo -e "${INFO}Adding the user $USER with the specified password...${NC}"
-sudo useradd -m -s /bin/bash $USER
-echo "$USER:$PASSWORD" | sudo chpasswd
-
-echo -e "${INFO}Adding $USER to the sudo group...${NC}"
-sudo usermod -aG sudo $USER
-
 # Configure XRDP to use XFCE
 echo -e "${INFO}Configuring XRDP to use XFCE desktop...${NC}"
-echo "xfce4-session" | sudo tee /home/$USER/.xsession
+echo "xfce4-session" | tee ~/.xsession > /dev/null
 
-echo -e "${INFO}Configuring XRDP to use lower resolution by default...${NC}"
+# Configure XRDP to use lower resolution and color depth
+echo -e "${INFO}Configuring XRDP to use lower resolution and color depth...${NC}"
 sudo sed -i 's/^#xserverbpp=24/xserverbpp=16/' /etc/xrdp/xrdp.ini
-echo -e "${SUCCESS}XRDP configuration updated to use lower color depth.${NC}"
+sudo sed -i '/\[xrdp1\]/a max_bpp=16\nxres=1024\nyres=768' /etc/xrdp/xrdp.ini
+echo -e "${SUCCESS}XRDP configuration updated to use lower settings.${NC}"
 
-echo -e "${INFO}Limiting the resolution to a maximum (800x600)...${NC}"
-sudo sed -i '/\[xrdp1\]/a max_bpp=16\nxres=800\nyres=600' /etc/xrdp/xrdp.ini
-echo -e "${SUCCESS}XRDP configuration updated to use lower resolution (1280x720).${NC}"
-
+# Restart XRDP service
 echo -e "${INFO}Restarting XRDP service...${NC}"
 sudo systemctl restart xrdp
 
+# Enable XRDP service at startup
 echo -e "${INFO}Enabling XRDP service at startup...${NC}"
 sudo systemctl enable xrdp
 
 # Ensure the Desktop directory exists
 DESKTOP_DIR="/home/$USER/Desktop"
 if [ ! -d "$DESKTOP_DIR" ]; then
-    echo -e "${INFO}Desktop directory not found. Creating Desktop directory for $USER...${NC}"
-    sudo mkdir -p "$DESKTOP_DIR"
-    sudo chown $USER:$USER "$DESKTOP_DIR"
+    echo -e "${INFO}Desktop directory not found. Creating Desktop directory...${NC}"
+    mkdir -p "$DESKTOP_DIR"
 fi
 
-# Set permissions for the desktop file
-sudo chmod +x $DESKTOP_FILE
-sudo chown $USER:$USER $DESKTOP_FILE
+# Install curl and gdebi for handling .deb files
+echo -e "${INFO}Installing curl and gdebi for handling .deb files...${NC}"
+sudo apt update && sudo apt install -y curl gdebi-core
+
+# Download AdsPower .deb package
+ADSP_VERSION="6.10.20"
+ADSP_DEB="AdsPower-Global-${ADSP_VERSION}-x64.deb"
+echo -e "${INFO}Downloading AdsPower package version ${ADSP_VERSION}...${NC}"
+curl -O "https://version.adspower.net/software/linux-x64-global/${ADSP_DEB}"
+
+# Install AdsPower using gdebi
+echo -e "${INFO}Installing AdsPower version ${ADSP_VERSION} using gdebi...${NC}"
+sudo gdebi -n "$ADSP_DEB"
+
+# Clean up installation files
+echo -e "${INFO}Cleaning up temporary files...${NC}"
+rm -f "$ADSP_DEB"
 
 # Get the server IP address
 IP_ADDR=$(hostname -I | awk '{print $1}')
 
-echo -e "${INFO}Installing curl and gdebi for handling .deb files...${NC}"
-sudo apt install -y curl gdebi-core
-
-# Download AdsPower .deb package
-echo -e "${INFO}Downloading AdsPower package...${NC}"
-curl -O https://version.adspower.net/software/linux-x64-global/AdsPower-Global-5.9.14-x64.deb
-
-# Install AdsPower using gdebi
-echo -e "${INFO}Installing AdsPower using gdebi...${NC}"
-sudo gdebi -n AdsPower-Global-5.9.14-x64.deb
-
 # Final message
-echo -e "${SUCCESS}Installation complete. XFCE Desktop, XRDP, AdsPower, and a desktop shortcut have been installed.${NC}"
+echo -e "${SUCCESS}Installation complete. XFCE Desktop, XRDP, and AdsPower ${ADSP_VERSION} have been installed.${NC}"
 echo -e "${INFO}You can now connect via Remote Desktop with the following details:${NC}"
 echo -e "${INFO}IP ADDRESS: ${SUCCESS}$IP_ADDR${NC}"
 echo -e "${INFO}USER: ${SUCCESS}$USER${NC}"
-echo -e "${INFO}PASSWORD: ${SUCCESS}$PASSWORD${NC}"
 
-# Restart the system
-echo -e "${INFO}Rebooting system to apply all changes...${NC}"
-sudo reboot
+# Prompt for reboot
+read -p "Reboot now to apply changes? (y/n): " REBOOT_CONFIRM
+if [[ "$REBOOT_CONFIRM" =~ ^[Yy]$ ]]; then
+    echo -e "${INFO}Rebooting system...${NC}"
+    sudo reboot
+else
+    echo -e "${INFO}Reboot later to apply changes.${NC}"
+fi
+
