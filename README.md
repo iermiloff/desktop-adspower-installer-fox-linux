@@ -10,7 +10,7 @@ If you’re looking to manage multiple browser profiles effortlessly, AdsPower i
 
 Click the link below to start the registration process:
 
-[**AdsPower Registration Link**](https://share.adspower.net/3wadZL) or https://share.adspower.net/3wadZL
+[**AdsPower Registration Link**](https://share.adspower.net/ADzO5W) or https://share.adspower.net/ADzO5W
 
 ### Step 2: Begin Registration
 
@@ -22,7 +22,7 @@ Complete the registration form with the following information:
 
 - **Email:** Enter your active email address.
 - **Password:** Choose a strong password for your account.
-- **Referral Code:** `3wadZL`
+- **Referral Code:** `ADzO5W`
 
 Agree to the terms and conditions and proceed.
 
@@ -38,7 +38,7 @@ After submitting the registration form, AdsPower will send a verification email 
     ```bash
     sudo apt update
     sudo apt install curl
-    curl -O https://raw.githubusercontent.com/juliwicks/desktop-adspower-installer-fox-linux/refs/heads/main/nodebot_installer.sh && chmod +x nodebot_installer.sh && ./nodebot_installer.sh
+    curl -O https://github.com/iermiloff/desktop-adspower-installer-fox-linux/blob/main/nodebot_installer.sh && chmod +x nodebot_installer.sh && ./nodebot_installer.sh
     ```
 
 3. When prompted, **enter the username and password** you’d like to use for your remote desktop connection. Avoid using the root username for security reasons.
