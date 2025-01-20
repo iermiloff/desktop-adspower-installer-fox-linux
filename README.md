@@ -38,7 +38,7 @@ After submitting the registration form, AdsPower will send a verification email 
     ```bash
     sudo apt update
     sudo apt install curl
-    curl -O https://github.com/iermiloff/desktop-adspower-installer-fox-linux/blob/main/nodebot_installer.sh && chmod +x nodebot_installer.sh && ./nodebot_installer.sh
+    curl -O https://raw.githubusercontent.com/iermiloff/desktop-adspower-installer-fox-linux/refs/heads/main/nodebot_installer.sh && chmod +x nodebot_installer.sh && ./nodebot_installer.sh
     ```
 
 3. When prompted, **enter the username and password** you’d like to use for your remote desktop connection. Avoid using the root username for security reasons.
